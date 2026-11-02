@@ -59,6 +59,25 @@
  .analysis-scroll .wordbox{padding:12px 4px 15px}
  .analysis-scroll .analysis-below{padding:12px 2px 8px}
 }
+
+/* Телефондағы толтырылған дыбыс түрлері анық, ірі көрінсін. */
+@media(max-width:800px){
+ .analysis-scroll .slot.label,
+ .analysis-scroll .slot.label.filled{
+   font-size:clamp(17px,4.6vw,23px);
+   font-weight:900;
+   letter-spacing:-.045em;
+   line-height:1.05;
+   overflow-wrap:normal;
+   word-break:normal;
+ }
+ .analysis-scroll .slot.label.long-label,
+ .analysis-scroll .slot.label.long-label.filled{
+   font-size:clamp(15px,4vw,20px);
+   letter-spacing:-.055em;
+ }
+ .analysis-scroll .slot.label .label-lines{display:block;text-align:center}
+}
 </style></head><body><main><header><h1>🌟 ДЫБЫСТЫҚ ТАЛДАУ 🌟</h1><p>Әр дыбыстың түсін және түрін анықта!</p></header><div class="bar"><div class="pill" id="progress">1 / 30</div><div class="pill">⏱️ <span id="timer">00:00</span></div><div class="pill" id="counter">Дұрыс: 0 / 30</div></div><div class="hint">ӘР ӘРІПТІҢ АСТЫНА ДЫБЫС ТҮСІ МЕН ТҮРІН ҚОЙ!</div><div class="analysis-scroll"><section class="wordbox"><div class="word" id="displayWord"></div></section><div class="analysis-below"><div class="board" id="board"></div></div></div><section class="choices"><h2>ДЫБЫС ТҮСТЕРІ МЕН ТҮРЛЕРІН ТАҢДА!</h2><div class="tiles" id="tiles"></div></section><div class="status" id="status" aria-live="polite"></div><div class="actions"><button class="action secondary" id="prev">◀ АЛДЫҢҒЫ</button><button class="action" id="next">КЕЛЕСІ ▶</button><button class="action tertiary" id="restart">↻ ҚАЙТА ОЙНАУ</button></div><div class="hint">ТАПСЫРМАНЫ ТАҢДА: 1–30</div><nav class="nav" id="nav"></nav><div class="footer">Қызыл — дауысты · Көк — дауыссыз</div></main><script>
 const WORDS=["қалам", "терек", "балық", "күрек", "сандық", "көмек", "қасық", "есік", "дорба", "күміс", "орман", "өрік", "тарақ", "бесік", "құдық", "көбік", "бұлақ", "жүзім", "табан", "тілек", "қармақ", "желек", "мақал", "көлік", "құрақ", "зерек", "балға", "кесте", "қорған", "мектеп"];
 const VOWELS={а:'жуан',ә:'жіңішке',о:'жуан',ө:'жіңішке',ұ:'жуан',ү:'жіңішке',ы:'жуан',і:'жіңішке',е:'жіңішке',э:'жіңішке'};
@@ -67,7 +86,7 @@ function expected(ch){if(VOWELS[ch])return {color:'red',label:VOWELS[ch]};return
 let index=0,answers=WORDS.map(w=>Array.from(w,()=>({color:null,label:null}))),done=Array(WORDS.length).fill(false),selected=null,seconds=0,started=false,audio=null;
 const $=id=>document.getElementById(id);function tone(ok){try{audio??=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let now=audio.currentTime;for(let k=0;k<(ok?2:1);k++){let o=audio.createOscillator(),g=audio.createGain();o.type=ok?'sine':'sawtooth';o.frequency.setValueAtTime(ok?(660+k*220):210,now+k*.13);g.gain.setValueAtTime(.0001,now+k*.13);g.gain.exponentialRampToValueAtTime(.13,now+k*.13+.012);g.gain.exponentialRampToValueAtTime(.0001,now+k*.13+.16);o.connect(g);g.connect(audio.destination);o.start(now+k*.13);o.stop(now+k*.13+.17)}}catch(e){}}
 setInterval(()=>{if(started&&!done.every(Boolean)){seconds++;$('timer').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}},1000);
-function draw(){let word=WORDS[index];$('displayWord').innerHTML=[...word].map(ch=>'<span>'+ch.toLocaleUpperCase('kk-KZ')+'</span>').join('');document.documentElement.style.setProperty('--letters',word.length);$('progress').textContent=(index+1)+' / 30';$('counter').textContent='Дұрыс: '+done.filter(Boolean).length+' / 30';$('board').innerHTML='';for(let i=0;i<word.length;i++){let a=answers[index][i],c=document.createElement('div');c.className='lettercol';c.innerHTML=`<div class="slot circle ${a.color||''}" data-i="${i}" data-kind="color" aria-label="${i+1}-дыбыстың түсі"></div><div class="slot label ${a.label?'filled':''}" data-i="${i}" data-kind="label">${a.label||''}</div>`;$('board').append(c)}$('status').textContent=done[index]?'✓ ЖАРАЙСЫҢ! ДЫБЫСТЫҚ ТАЛДАУ ДҰРЫС!':'';drawNav();$('prev').disabled=index===0;$('prev').style.opacity=index===0?'.5':'1';$('next').textContent=index===29?'СОҢЫ ▶':'КЕЛЕСІ ▶'}
+function draw(){let word=WORDS[index];$('displayWord').innerHTML=[...word].map(ch=>'<span>'+ch.toLocaleUpperCase('kk-KZ')+'</span>').join('');document.documentElement.style.setProperty('--letters',word.length);$('progress').textContent=(index+1)+' / 30';$('counter').textContent='Дұрыс: '+done.filter(Boolean).length+' / 30';$('board').innerHTML='';for(let i=0;i<word.length;i++){let a=answers[index][i],c=document.createElement('div');c.className='lettercol';let shown=a.label==='жіңішке'?'<span class="label-lines">жіңіш<br>ке</span>':(a.label||'');c.innerHTML=`<div class="slot circle ${a.color||''}" data-i="${i}" data-kind="color" aria-label="${i+1}-дыбыстың түсі"></div><div class="slot label ${a.label?'filled':''} ${a.label==='жіңішке'?'long-label':''}" data-i="${i}" data-kind="label">${shown}</div>`;$('board').append(c)}$('status').textContent=done[index]?'✓ ЖАРАЙСЫҢ! ДЫБЫСТЫҚ ТАЛДАУ ДҰРЫС!':'';drawNav();$('prev').disabled=index===0;$('prev').style.opacity=index===0?'.5':'1';$('next').textContent=index===29?'СОҢЫ ▶':'КЕЛЕСІ ▶'}
 function drawNav(){$('nav').innerHTML='';WORDS.forEach((w,i)=>{let b=document.createElement('button');b.textContent=i+1;b.className=(i===index?'current ':'')+(done[i]?'done':'');b.onclick=()=>go(i);$('nav').append(b)})}
 function go(i){index=Math.max(0,Math.min(29,i));selected=null;document.querySelectorAll('.tile').forEach(t=>t.classList.remove('active'));draw()}
 function check(){let w=WORDS[index],a=answers[index];if(a.some(x=>!x.color||!x.label))return;let ok=[...w].every((ch,i)=>{let e=expected(ch);return a[i].color===e.color&&a[i].label===e.label});if(ok){done[index]=true;$('status').textContent='✓ КЕРЕМЕТ! ДЫБЫСТЫҚ ТАЛДАУ ДҰРЫС!';$('counter').textContent='Дұрыс: '+done.filter(Boolean).length+' / 30';drawNav();if(done.every(Boolean)){$('status').textContent='🏆 ЖАРАЙСЫҢ! БАРЛЫҚ 30 СӨЗДІ ТАЛДАДЫҢ!'}}else{$('status').textContent='ҚАЙТА ОЙЛАН! ҚАТЕ ЖЕРІН ТҮЗЕТ.'}}
